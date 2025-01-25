@@ -22,9 +22,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Show initial structure
-        run: |
-          echo "Initial directory structure:"
-          tree -L 3
+        run: tree -L 3
 
       - name: Setup Java
         if: matrix.platform == 'android'
@@ -52,7 +50,7 @@ jobs:
 
       - name: Setup Android NDK
         if: matrix.platform == 'android'
-        uses: nttld/setup-ndk@v1
+        uses: nttld/setup-ndk@v2
         with:
           ndk-version: ${{ env.NDK_VERSION }}
           link-to-sdk: true
@@ -63,99 +61,98 @@ jobs:
           cd binaries
           
           if [ "${{ matrix.platform }}" = "android" ]; then
+            # Android builds
             export CC=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android33-clang
             export CXX=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android33-clang++
-            
+
             # Build C/C++
             $CC c/hello.c -o c/hello-c
             $CXX cpp/hello.cpp -o cpp/hello-cpp
-            
+
             # Build Rust
             cd rust
             cargo build --release --target aarch64-linux-android
-            cp target/aarch64-linux-android/release/hello-rust ../
+            cp target/aarch64-linux-android/release/hello-rust ./
             cd ..
-            
+
             # Build Go
             export CGO_ENABLED=1 GOOS=android GOARCH=arm64
             cd go
             go build -o hello-go hello.go
             cd ..
+
           else
-            # Build Linux binaries
+            # Linux builds
             gcc c/hello.c -o c/hello-c
             g++ cpp/hello.cpp -o cpp/hello-cpp
+
+            # Build Rust (fixed copy path)
             cd rust
             cargo build --release
-            cp target/release/hello-rust ../
+            cp target/release/hello-rust ./
             cd ..
+
+            # Build Go
             cd go
             GOOS=linux GOARCH=amd64 go build -o hello-go hello.go
             cd ..
           fi
-          
+
           echo "Final binaries structure:"
-          tree -L 3
+          tree -L 4
+          echo "Rust binary location:"
+          ls -l rust/hello-rust
 
       - name: Prepare Assets
         run: |
           echo "=== PREPARING ASSETS ==="
           mkdir -p flutter_app/assets/${{ matrix.platform }}
-          cp binaries/c/hello-c flutter_app/assets/${{ matrix.platform }}/
-          cp binaries/cpp/hello-cpp flutter_app/assets/${{ matrix.platform }}/
-          cp binaries/rust/hello-rust flutter_app/assets/${{ matrix.platform }}/
-          cp binaries/go/hello-go flutter_app/assets/${{ matrix.platform }}/
-          echo "Assets directory:"
-          tree flutter_app/assets/
+          
+          echo "Copying C binary:"
+          cp -v binaries/c/hello-c flutter_app/assets/${{ matrix.platform }}/
+          
+          echo "Copying C++ binary:"
+          cp -v binaries/cpp/hello-cpp flutter_app/assets/${{ matrix.platform }}/
+          
+          echo "Copying Rust binary:"
+          cp -v binaries/rust/hello-rust flutter_app/assets/${{ matrix.platform }}/
+          
+          echo "Copying Go binary:"
+          cp -v binaries/go/hello-go flutter_app/assets/${{ matrix.platform }}/
+          
+          echo "Assets verification:"
+          ls -l flutter_app/assets/${{ matrix.platform }}/
 
       - name: Configure Linux Desktop
         if: matrix.platform == 'linux'
         run: |
-          echo "=== CONFIGURING LINUX DESKTOP ==="
           cd flutter_app
           flutter create --platforms=linux .
-          echo "Linux configuration:"
-          tree linux -L 3
 
       - name: Build Flutter App
         run: |
-          echo "=== BUILDING FLUTTER APP ==="
           cd flutter_app
           flutter pub get
           
           if [ "${{ matrix.platform }}" = "android" ]; then
-            flutter build apk --release --verbose
+            flutter build apk --release
           else
-            flutter build linux --release --verbose \
-              --target=lib/main.dart \
-              --target-platform=linux-x64 \
-              --dart-define=FLUTTER_WEB_USE_SKIA=true
+            flutter build linux --release
           fi
-          
-          echo "Build output structure:"
-          tree build -L 3
 
       - name: Package Artifacts
         run: |
-          echo "=== PACKAGING ARTIFACTS ==="
           mkdir -p artifacts
-          
           if [ "${{ matrix.platform }}" = "android" ]; then
-            cp flutter_app/build/app/outputs/apk/release/app-release.apk artifacts/hello_world.apk
+            cp flutter_app/build/app/outputs/apk/release/app-release.apk artifacts/
           else
             cd flutter_app/build/linux/x64/release/bundle
             zip -r ../../../../../artifacts/linux-app.zip .
-            cd -
           fi
-          
-          echo "Final artifacts:"
-          tree artifacts
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.platform }}-deliverables
-          path: |
-            artifacts/hello_world.apk
-            artifacts/linux-app.zip
+          path: artifacts/*
           if-no-files-found: error
