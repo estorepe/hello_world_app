@@ -7,7 +7,7 @@ on:
 
 env:
   FLUTTER_VERSION: "3.13.9"
-  NDK_VERSION: "25.2.9519653"
+  NDK_VERSION: "r25b"  # Correct NDK version format
   GO_VERSION: "1.21.6"
 
 jobs:
@@ -56,6 +56,7 @@ jobs:
         run: |
           cd binaries
           if [ "${{ matrix.platform }}" = "android" ]; then
+            # Android toolchain
             export CC=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android33-clang
             export CXX=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android33-clang++
             
@@ -65,23 +66,35 @@ jobs:
             # Build C++
             $CXX cpp/hello.cpp -o cpp/hello-cpp
             
-            # Build Rust
+            # Build Rust (correct path)
+            cd rust
             cargo build --release --target aarch64-linux-android
-            cp target/aarch64-linux-android/release/hello-rust rust/
+            cp target/aarch64-linux-android/release/hello-rust ../
+            cd ..
             
             # Build Go
             export CGO_ENABLED=1
             export GOOS=android
             export GOARCH=arm64
-            export CC=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android33-clang
-            go build -o go/hello-go go/hello.go
+            export CC=$CC
+            cd go
+            go build -o hello-go hello.go
+            cd ..
           else
-            # Build Linux binaries
+            # Linux builds
             gcc c/hello.c -o c/hello-c
             g++ cpp/hello.cpp -o cpp/hello-cpp
+            
+            # Build Rust
+            cd rust
             cargo build --release
-            cp target/release/hello-rust rust/
-            GOOS=linux GOARCH=amd64 go build -o go/hello-go go/hello.go
+            cp target/release/hello-rust ../
+            cd ..
+            
+            # Build Go
+            cd go
+            GOOS=linux GOARCH=amd64 go build -o hello-go hello.go
+            cd ..
           fi
 
       - name: Prepare Assets
@@ -106,7 +119,7 @@ jobs:
         run: |
           mkdir -p artifacts
           if [ "${{ matrix.platform }}" = "android" ]; then
-            cp flutter_app/build/app/outputs/apk/release/app-release.apk artifacts/
+            cp flutter_app/build/app/outputs/apk/release/app-release.apk artifacts/hello_world.apk
           else
             cd flutter_app/build/linux/x64/release/bundle && zip -r ../../../../../artifacts/linux-app.zip .
           fi
@@ -115,5 +128,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.platform }}-deliverables
-          path: artifacts/*
+          path: |
+            artifacts/hello_world.apk
+            artifacts/linux-app.zip
           if-no-files-found: error
