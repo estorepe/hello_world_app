@@ -12,7 +12,7 @@ env:
   RUST_VERSION: "stable"
   GRADLE_VERSION: "7.6"
   ANDROID_GRADLE_PLUGIN: "7.3.0"
-  FLUTTER_ROOT: ${{ github.workspace }}/flutter
+  FLUTTER_ROOT: /opt/hostedtoolcache/flutter/stable-3.22.0-x64
 
 jobs:
   build:
@@ -69,7 +69,7 @@ jobs:
       - name: Set Gradle JDK Compatibility
         if: matrix.platform == 'android'
         run: |
-          echo "org.gradle.java.home=$JAVA_HOME_17_X64" >> flutter_app/android/gradle.properties
+          echo "org.gradle.java.home=$JAVA_HOME" >> flutter_app/android/gradle.properties
 
       - name: Install Gradle
         if: matrix.platform == 'android'
@@ -87,8 +87,13 @@ jobs:
         if: matrix.platform == 'android'
         run: |
           cd flutter_app/android
-          gradle wrapper --gradle-version=${{ env.GRADLE_VERSION }} --distribution-type=bin
+          ./gradlew wrapper --gradle-version=${{ env.GRADLE_VERSION }}
           chmod +x gradlew
+      - name: Install Android SDK Components
+        if: matrix.platform == 'android'
+        run: |
+          yes | sdkmanager --licenses
+          sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
 
       - name: Configure Rust for Android
         if: matrix.platform == 'android'

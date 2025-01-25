@@ -1,2 +1,31 @@
-include ':app'
-rootProject.name = "hello_world"
+// flutter_app/android/settings.gradle
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+    resolutionStrategy {
+        eachPlugin {
+            if (requested.id.toString() == "com.android.application") {
+                useModule("com.android.tools.build:gradle:7.3.0")
+            }
+            if (requested.id.toString() == "dev.flutter.flutter-gradle-plugin") {
+                useModule("dev.flutter:flutter-gradle-plugin:3.22.0")
+            }
+        }
+    }
+}
+
+// Add this section to handle Flutter plugin location
+def flutterProjectRoot = rootProject.projectDir.parentFile.toPath()
+def plugins = new Properties()
+def pluginsFile = new File(flutterProjectRoot.toFile(), '.flutter-plugins')
+if (pluginsFile.exists()) {
+    pluginsFile.withReader('UTF-8') { reader -> plugins.load(reader) }
+}
+
+plugins.each { name, path ->
+    include ":$name"
+    project(":$name").projectDir = file(path)
+}
