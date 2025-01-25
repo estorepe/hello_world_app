@@ -4,14 +4,13 @@ pluginManagement {
         google()
         mavenCentral()
         gradlePluginPortal()
-        // Add Flutter's Maven repo
         maven { url "https://storage.googleapis.com/download.flutter.io" }
     }
     resolutionStrategy {
         eachPlugin {
             if (requested.id.toString() == "dev.flutter.flutter-gradle-plugin") {
-                useVersion "3.22.0"  // Match your Flutter version
-                useModule("dev.flutter:flutter-gradle-plugin:3.22.0")
+                useVersion "3.22.0"
+                useModule("dev.flutter:flutter-gradle-plugin:${requested.version}")
             }
         }
     }

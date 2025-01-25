@@ -1,6 +1,7 @@
 plugins {
     id "com.android.application"
     id "org.jetbrains.kotlin.android"
+    id "dev.flutter.flutter-gradle-plugin" apply false
 }
 
 def localProperties = new Properties()
@@ -73,6 +74,4 @@ kotlin {
     jvmToolchain(17)
 }
 
-// MUST BE LAST LINE IN FILE
-// apply from: "../../flutter/packages/flutter_tools/gradle/flutter.gradle"
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
