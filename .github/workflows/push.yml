@@ -1,14 +1,14 @@
-name: Build and Package Deliverables
+name: Build and Deliver
 
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
+  workflow_dispatch:
 
 env:
-  NDK_VERSION: "25.1.8937393"
-  FLUTTER_VERSION: "3.13.0"
+  FLUTTER_VERSION: "3.13.9"
+  NDK_VERSION: "25.2.9519653"
+  GO_VERSION: "1.21.6"
 
 jobs:
   build:
@@ -16,17 +16,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        include:
-          - platform: android
-            build-command: build apk
-          - platform: linux
-            build-command: build linux
-
+        platform: [android, linux]
     steps:
-      - name: Checkout Repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Setup Java
+        if: matrix.platform == 'android'
         uses: actions/setup-java@v3
         with:
           java-version: '11'
@@ -38,43 +34,80 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
 
-      - name: Install Rust
-        uses: actions-rust-lang/setup-rust@v1
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
         with:
-          target: aarch64-linux-android
+          targets: aarch64-linux-android
+          components: rustfmt, clippy
 
-      - name: Install Go
+      - name: Setup Go
         uses: actions/setup-go@v4
         with:
-          go-version: '1.20'
+          go-version: ${{ env.GO_VERSION }}
 
       - name: Setup Android NDK
         if: matrix.platform == 'android'
-        uses: android-actions/setup-ndk@v1
+        uses: https://github.com/marketplace/actions/android-ndk-setup
         with:
           ndk-version: ${{ env.NDK_VERSION }}
 
       - name: Build Binaries
         run: |
           cd binaries
-          ./build_linux.sh
           if [ "${{ matrix.platform }}" = "android" ]; then
-            ./build_android.sh
+            export CC=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android33-clang
+            export CXX=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android33-clang++
+            
+            # Build C
+            $CC c/hello.c -o c/hello-c
+            
+            # Build C++
+            $CXX cpp/hello.cpp -o cpp/hello-cpp
+            
+            # Build Rust
+            cargo build --release --target aarch64-linux-android
+            cp target/aarch64-linux-android/release/hello-rust rust/
+            
+            # Build Go
+            export CGO_ENABLED=1
+            export GOOS=android
+            export GOARCH=arm64
+            export CC=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android33-clang
+            go build -o go/hello-go go/hello.go
+          else
+            # Build Linux binaries
+            gcc c/hello.c -o c/hello-c
+            g++ cpp/hello.cpp -o cpp/hello-cpp
+            cargo build --release
+            cp target/release/hello-rust rust/
+            GOOS=linux GOARCH=amd64 go build -o go/hello-go go/hello.go
           fi
+
+      - name: Prepare Assets
+        run: |
+          mkdir -p flutter_app/assets/${{ matrix.platform }}
+          cp binaries/c/hello-c flutter_app/assets/${{ matrix.platform }}/
+          cp binaries/cpp/hello-cpp flutter_app/assets/${{ matrix.platform }}/
+          cp binaries/rust/hello-rust flutter_app/assets/${{ matrix.platform }}/
+          cp binaries/go/hello-go flutter_app/assets/${{ matrix.platform }}/
 
       - name: Build Flutter App
         run: |
           cd flutter_app
           flutter pub get
-          flutter ${{ matrix.build-command }} --release
+          if [ "${{ matrix.platform }}" = "android" ]; then
+            flutter build apk --release
+          else
+            flutter build linux --release
+          fi
 
-      - name: Package Deliverables
+      - name: Package Artifacts
         run: |
           mkdir -p artifacts
           if [ "${{ matrix.platform }}" = "android" ]; then
-            cp flutter_app/build/app/outputs/apk/release/app-release.apk artifacts/hello_world.apk
+            cp flutter_app/build/app/outputs/apk/release/app-release.apk artifacts/
           else
-            cd flutter_app/build/linux/x64/release/bundle && zip -r ../../../../../../artifacts/linux-app.zip .
+            cd flutter_app/build/linux/x64/release/bundle && zip -r ../../../../../artifacts/linux-app.zip .
           fi
 
       - name: Upload Artifacts
