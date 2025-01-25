@@ -118,7 +118,7 @@ jobs:
             echo "FLUTTER_ROOT=$FLUTTER_ROOT" >> .env
             flutter build apk --release --verbose \
               --target-platform android-arm64 \
-              --dart-define=PLATFORM=android
+              --dart-define=PLATFORM=android --no-tree-shake-icons
           else
             flutter build linux --release --verbose \
               --target-platform linux-x64 \
