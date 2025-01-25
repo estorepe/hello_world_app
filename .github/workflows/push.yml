@@ -7,7 +7,7 @@ on:
 
 env:
   FLUTTER_VERSION: "3.22.0"
-  NDK_VERSION: "25.1.8937393"
+  NDK_VERSION: "r25b"
   GO_VERSION: "1.21.6"
   RUST_VERSION: "stable"
   GRADLE_VERSION: "7.6"
