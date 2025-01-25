@@ -45,8 +45,9 @@ jobs:
             xdg-utils pkg-config mesa-common-dev libdbus-1-dev
 
       - name: Setup Rust
-        uses: dtolnay/rust-toolchain@${{ env.RUST_VERSION }}
+        uses: dtolnay/rust-toolchain@v1
         with:
+          toolchain: ${{ env.RUST_VERSION }}
           targets: aarch64-linux-android,x86_64-unknown-linux-gnu
           components: rustfmt, clippy
 
