@@ -94,7 +94,7 @@ jobs:
           cd flutter_app
           flutter config --no-analytics --enable-linux-desktop
           flutter create --platforms=linux --org com.example --project-name hello_world .
-          sed -i '/dependencies:/a \  path_provider: ^2.1.5' pubspec.yaml
+          # sed -i '/dependencies:/a \  path_provider: ^2.1.5' pubspec.yaml
           flutter pub get
 
       - name: Build Flutter App
