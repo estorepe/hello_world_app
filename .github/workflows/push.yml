@@ -63,6 +63,12 @@ jobs:
         with:
           ndk-version: ${{ env.NDK_VERSION }}
           link-to-sdk: true
+
+      - name: Set Gradle JDK Compatibility
+        if: matrix.platform == 'android'
+        run: |
+          echo "org.gradle.java.home=$JAVA_HOME_17_X64" >> flutter_app/android/gradle.properties
+
       - name: Install Gradle
         if: matrix.platform == 'android'
         uses: gradle/gradle-build-action@v2
