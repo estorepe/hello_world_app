@@ -114,8 +114,8 @@ jobs:
           cd flutter_app
           flutter clean
           flutter pub get --verbose
-          
           if [ "${{ matrix.platform }}" = "android" ]; then
+            echo "FLUTTER_ROOT=$FLUTTER_ROOT" >> .env
             flutter build apk --release --verbose \
               --target-platform android-arm64 \
               --dart-define=PLATFORM=android

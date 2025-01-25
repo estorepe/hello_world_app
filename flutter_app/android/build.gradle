@@ -1,5 +1,8 @@
 buildscript {
     ext.kotlin_version = '1.9.0'
+    ext {
+        flutterRoot = System.env.FLUTTER_ROOT ?: "$System.env.HOME/flutter"
+    }
     repositories {
         google()
         mavenCentral()
