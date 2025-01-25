@@ -1,9 +1,9 @@
 name: hello_world_app
-description: Cross-platform binary executor
+description: A cross-platform app that runs hello world binaries
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.17.0 <3.0.0"
+  sdk: ">=3.4.0 <4.0.0"
 
 dependencies:
   flutter:

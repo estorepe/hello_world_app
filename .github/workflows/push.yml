@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 env:
-  FLUTTER_VERSION: "3.13.9"
+  FLUTTER_VERSION: "3.22.0"  # Updated for Dart 3.4.0
   NDK_VERSION: "r21e"
   GO_VERSION: "1.21.6"
   RUST_VERSION: "stable"
@@ -94,6 +94,8 @@ jobs:
           cd flutter_app
           flutter config --no-analytics --enable-linux-desktop
           flutter create --platforms=linux --org com.example --project-name hello_world .
+          sed -i '/dependencies:/a \  path_provider: ^2.1.5' pubspec.yaml
+          flutter pub get
 
       - name: Build Flutter App
         run: |
