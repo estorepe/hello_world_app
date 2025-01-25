@@ -11,6 +11,7 @@ env:
   GO_VERSION: "1.21.6"
   RUST_VERSION: "stable"
   GRADLE_VERSION: "7.6"
+  ANDROID_GRADLE_PLUGIN: "7.3.0"
 
 jobs:
   build:
