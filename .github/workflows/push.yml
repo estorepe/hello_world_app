@@ -131,6 +131,12 @@ jobs:
             echo "Linux binary dependencies:"
             ldd flutter_app/build/linux/x64/release/bundle/hello_world
           fi
+      - name: Debug Linux Build
+        if: matrix.platform == 'linux'
+        run: |
+          echo "Checking build output..."
+          ls -la flutter_app/build/linux/x64/release/bundle
+          echo "Current directory: $(pwd)"
 
       - name: Package Artifacts
         run: |
@@ -138,10 +144,10 @@ jobs:
           if [ "${{ matrix.platform }}" = "android" ]; then
             cp flutter_app/build/app/outputs/apk/release/app-release.apk artifacts/
           else
-            cd flutter_app/build/linux/x64/release/bundle
-            zip -r ../../../../../artifacts/hello_world_linux.zip .
+            cd flutter_app/build/linux/x64/release
+            zip -r ../../../../../artifacts/hello_world_linux.zip bundle
           fi
-
+      
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
         with:
