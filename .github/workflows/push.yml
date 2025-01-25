@@ -87,8 +87,11 @@ jobs:
         if: matrix.platform == 'android'
         run: |
           cd flutter_app/android
-          ./gradlew wrapper --gradle-version=${{ env.GRADLE_VERSION }}
+          gradle wrapper --gradle-version=${{ env.GRADLE_VERSION }}
           chmod +x gradlew
+          ls -la gradle*
+          ls -la gradle/wrapper/
+
       - name: Install Android SDK Components
         if: matrix.platform == 'android'
         run: |
