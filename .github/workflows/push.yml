@@ -117,8 +117,7 @@ jobs:
           else
             flutter build linux --release --verbose \
               --target-platform linux-x64 \
-              --dart-define=PLATFORM=linux \
-              --build-target=lib/main.dart
+              --dart-define=PLATFORM=linux
           fi
 
       - name: Validate Bundle
