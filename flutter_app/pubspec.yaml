@@ -15,7 +15,6 @@ flutter:
   assets:
     - assets/android/
     - assets/linux/
-  
   module:
     androidX: true
     androidPackage: com.example.hello_world
