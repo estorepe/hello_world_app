@@ -6,10 +6,11 @@ on:
   workflow_dispatch:
 
 env:
-  FLUTTER_VERSION: "3.22.0"  # Updated for Dart 3.4.0
+  FLUTTER_VERSION: "3.22.0"
   NDK_VERSION: "r21e"
   GO_VERSION: "1.21.6"
   RUST_VERSION: "stable"
+  GRADLE_VERSION: "8.0.2"
 
 jobs:
   build:
@@ -63,6 +64,13 @@ jobs:
           ndk-version: ${{ env.NDK_VERSION }}
           link-to-sdk: true
 
+      - name: Configure Android Gradle
+        if: matrix.platform == 'android'
+        run: |
+          cd flutter_app/android
+          ./gradlew wrapper --gradle-version=${{ env.GRADLE_VERSION }} --distribution-type=bin
+          chmod +x gradlew
+
       - name: Configure Rust for Android
         if: matrix.platform == 'android'
         run: |
@@ -94,7 +102,6 @@ jobs:
           cd flutter_app
           flutter config --no-analytics --enable-linux-desktop
           flutter create --platforms=linux --org com.example --project-name hello_world .
-          # sed -i '/dependencies:/a \  path_provider: ^2.1.5' pubspec.yaml
           flutter pub get
 
       - name: Build Flutter App
