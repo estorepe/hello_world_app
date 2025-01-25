@@ -83,7 +83,7 @@ jobs:
       - name: Prepare Assets
         run: |
           mkdir -p flutter_app/assets/${{ matrix.platform }}
-          install -m755 binaries/*/build/${{ matrix.platform }}/* flutter_app/assets/${{ matrix.platform }}/
+          find binaries -name "hello-*" -exec install -Dm755 {} flutter_app/assets/${{ matrix.platform }} \;
           echo "Final assets:"
           ls -l flutter_app/assets/${{ matrix.platform }}/
 
