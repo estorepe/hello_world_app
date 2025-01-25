@@ -84,6 +84,15 @@ jobs:
           ls -la $FLUTTER_ROOT/packages/flutter_tools/gradle
           cat $FLUTTER_ROOT/packages/flutter_tools/gradle/flutter.gradle
 
+
+      - name: Generate Local Properties
+        if: matrix.platform == 'android'
+        run: |
+          echo "sdk.dir=$ANDROID_HOME" > flutter_app/android/local.properties
+          echo "flutter.sdk=$FLUTTER_ROOT" >> flutter_app/android/local.properties
+          echo "flutter.versionCode=1" >> flutter_app/android/local.properties
+          echo "flutter.versionName=1.0.0" >> flutter_app/android/local.properties
+
       - name: Configure Android Gradle
         if: matrix.platform == 'android'
         run: |

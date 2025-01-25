@@ -1,4 +1,7 @@
 // flutter_app/android/settings.gradle
+// flutter_app/android/settings.gradle
+include ':app'
+
 pluginManagement {
     repositories {
         google()
@@ -17,8 +20,9 @@ pluginManagement {
     }
 }
 
-// Add this section to handle Flutter plugin location
+// Add Flutter module configuration
 def flutterProjectRoot = rootProject.projectDir.parentFile.toPath()
+
 def plugins = new Properties()
 def pluginsFile = new File(flutterProjectRoot.toFile(), '.flutter-plugins')
 if (pluginsFile.exists()) {
