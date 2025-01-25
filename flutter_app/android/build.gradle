@@ -1,23 +1,34 @@
 buildscript {
-    ext.kotlin_version = '1.7.2'
+    ext.kotlin_version = '1.7.20'  // Changed from 1.7.2 to match app's version
     ext {
         flutterRoot = System.env.FLUTTER_ROOT ?: "$System.env.HOME/flutter"
     }
     repositories {
+        // Add mirror repos first for reliability
+        maven { url 'https://maven.aliyun.com/repository/google' }
+        maven { url 'https://maven.aliyun.com/repository/public' }
+        maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
         google()
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.6'
+        // Remove duplicate classpath entry
+        classpath 'com.android.tools.build:gradle:7.3.0'  // Keep only this one (7.6 was deleted)
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath 'com.android.tools.build:gradle:7.3.0'
     }
 }
 
 allprojects {
     repositories {
+        // Mirror repos for all projects
+        maven { url 'https://maven.aliyun.com/repository/google' }
+        maven { url 'https://maven.aliyun.com/repository/public' }
+        maven { url 'https://maven.aliyun.com/repository/jcenter' }
         google()
         mavenCentral()
+        
+        // Needed for newer AndroidX libraries
+        maven { url 'https://androidx.dev/storage/compose-compiler/repository/' }
     }
 }
 
