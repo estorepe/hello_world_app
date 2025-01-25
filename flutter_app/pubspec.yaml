@@ -1,6 +1,5 @@
 name: hello_world_app
-description: A cross-platform app that runs hello world binaries
-
+description: Cross-platform binary executor
 version: 1.0.0+1
 
 environment:
@@ -9,10 +8,14 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  path_provider: ^2.0.11
+  path_provider: ^2.1.5
 
 flutter:
   uses-material-design: true
   assets:
     - assets/android/
     - assets/linux/
+  desktop:
+    linux:
+      executable: hello_world
+      icon: assets/linux/icon.png

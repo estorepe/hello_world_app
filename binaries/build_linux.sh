@@ -1,17 +1,26 @@
 #!/bin/bash
+set -e
+
 # Build C
-gcc binaries/c/hello.c -o binaries/c/hello-c
+mkdir -p c/build/linux
+gcc c/hello.c -o c/build/linux/hello-c
+strip c/build/linux/hello-c
 
 # Build C++
-g++ binaries/cpp/hello.cpp -o binaries/cpp/hello-cpp
+mkdir -p cpp/build/linux
+g++ cpp/hello.cpp -o cpp/build/linux/hello-cpp
+strip cpp/build/linux/hello-cpp
 
 # Build Rust
-cd binaries/rust && cargo build --release
-cp target/release/hello-rust ../..
+mkdir -p rust/build/linux
+cd rust
+cargo build --release
+cp target/release/hello-rust ../build/linux/
+strip ../build/linux/hello-rust
+cd ..
 
 # Build Go
-GOOS=linux GOARCH=amd64 go build -o binaries/go/hello-go binaries/go/hello.go
-
-# Copy Linux binaries to Flutter assets
-mkdir -p ../flutter_app/assets/linux
-cp binaries/c/hello-c binaries/cpp/hello-cpp binaries/rust/hello-rust binaries/go/hello-go ../flutter_app/assets/linux/
+mkdir -p go/build/linux
+cd go
+GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o build/linux/hello-go hello.go
+cd ..
