@@ -7,10 +7,10 @@ on:
 
 env:
   FLUTTER_VERSION: "3.22.0"
-  NDK_VERSION: "r21e"
+  NDK_VERSION: "25.1.8937393"
   GO_VERSION: "1.21.6"
   RUST_VERSION: "stable"
-  GRADLE_VERSION: "8.0.2"
+  GRADLE_VERSION: "7.6"
 
 jobs:
   build:
