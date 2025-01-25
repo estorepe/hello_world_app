@@ -15,7 +15,3 @@ flutter:
   assets:
     - assets/android/
     - assets/linux/
-  desktop:
-    linux:
-      executable: hello_world
-      icon: assets/linux/icon.png

@@ -92,9 +92,8 @@ jobs:
         if: matrix.platform == 'linux'
         run: |
           cd flutter_app
-          flutter config --enable-linux-desktop
+          flutter config --no-analytics --enable-linux-desktop
           flutter create --platforms=linux --org com.example --project-name hello_world .
-          flutter pub get
 
       - name: Build Flutter App
         run: |
