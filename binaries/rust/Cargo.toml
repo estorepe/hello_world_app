@@ -3,8 +3,9 @@ name = "hello-rust"
 version = "0.1.0"
 edition = "2021"
 
-[target.aarch64-linux-android.dependencies]
-libc = "0.2"
+[[bin]]
+name = "hello-rust"
+path = "src/main.rs"
 
-[target.x86_64-unknown-linux-gnu.dependencies]
+[dependencies]
 libc = "0.2"

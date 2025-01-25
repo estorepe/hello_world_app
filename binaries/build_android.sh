@@ -18,6 +18,7 @@ $CXX cpp/hello.cpp -o cpp/build/android/hello-cpp
 strip cpp/build/android/hello-cpp
 
 # Build Rust
+# Build Rust
 mkdir -p rust/build/android
 cd rust
 cargo build --release --target aarch64-linux-android

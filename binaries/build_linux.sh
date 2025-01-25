@@ -14,8 +14,8 @@ strip cpp/build/linux/hello-cpp
 # Build Rust
 mkdir -p rust/build/linux
 cd rust
-cargo build --release
-cp target/release/hello-rust ../build/linux/
+cargo build --release --target x86_64-unknown-linux-gnu
+cp target/x86_64-unknown-linux-gnu/release/hello-rust ../build/linux/
 strip ../build/linux/hello-rust
 cd ..
 
