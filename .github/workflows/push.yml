@@ -71,11 +71,6 @@ jobs:
         run: |
           echo "org.gradle.java.home=$JAVA_HOME" >> flutter_app/android/gradle.properties
 
-      - name: Install Android SDK Components
-        if: matrix.platform == 'android'
-        run: |
-          yes | sdkmanager --licenses
-          sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
 
       - name: Install Gradle
         if: matrix.platform == 'android'
