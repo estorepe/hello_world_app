@@ -7,7 +7,7 @@ on:
 
 env:
   FLUTTER_VERSION: "3.13.9"
-  NDK_VERSION: "r21e"  # Compatible NDK version
+  NDK_VERSION: "r21e"
   GO_VERSION: "1.21.6"
 
 jobs:
@@ -34,6 +34,12 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
 
+      - name: Install Linux Dependencies
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build clang libgtk-3-dev pkg-config
+
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -47,7 +53,7 @@ jobs:
 
       - name: Setup Android NDK
         if: matrix.platform == 'android'
-        uses: nttld/setup-ndk@v1
+        uses: nttld/setup-ndk@v2
         with:
           ndk-version: ${{ env.NDK_VERSION }}
           link-to-sdk: true
@@ -61,66 +67,112 @@ jobs:
           linker = "$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android21-clang"
           ar = "$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar"
           EOF
+          echo "Cargo config:"
+          cat binaries/rust/.cargo/config
 
       - name: Build Binaries
         run: |
+          echo "=== BUILDING BINARIES FOR ${{ matrix.platform }} ==="
           cd binaries
+          
           if [ "${{ matrix.platform }}" = "android" ]; then
+            # Android toolchain setup
             export CC=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android21-clang
             export CXX=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android21-clang++
             export CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER=$CC
 
             # Build C/C++
+            echo "Building C..."
             $CC c/hello.c -o c/hello-c
-            $CXX cpp/hello.cpp -o cpp/hello-cpp
+            ls -l c/hello-c
 
-            # Build Rust
+            echo "Building C++..."
+            $CXX cpp/hello.cpp -o cpp/hello-cpp
+            ls -l cpp/hello-cpp
+
+            # Build Rust (correct path)
+            echo "Building Rust..."
             cd rust
             cargo build --release --target aarch64-linux-android
-            cp target/aarch64-linux-android/release/hello-rust ../
+            cp target/aarch64-linux-android/release/hello-rust ./
+            ls -l hello-rust
             cd ..
 
             # Build Go
+            echo "Building Go..."
             export CGO_ENABLED=1 GOOS=android GOARCH=arm64
             cd go
             go build -o hello-go hello.go
+            ls -l hello-go
             cd ..
 
           else
             # Linux builds
+            echo "Building C..."
             gcc c/hello.c -o c/hello-c
+            ls -l c/hello-c
+
+            echo "Building C++..."
             g++ cpp/hello.cpp -o cpp/hello-cpp
+            ls -l cpp/hello-cpp
+
+            # Build Rust (correct path)
+            echo "Building Rust..."
             cd rust
             cargo build --release
-            cp target/release/hello-rust ../
+            cp target/release/hello-rust ./
+            ls -l hello-rust
             cd ..
+
+            # Build Go
+            echo "Building Go..."
             cd go
             GOOS=linux GOARCH=amd64 go build -o hello-go hello.go
+            ls -l hello-go
             cd ..
           fi
 
+          echo "Final binaries structure:"
+          tree -L 3
+
       - name: Prepare Assets
         run: |
+          echo "=== PREPARING ASSETS ==="
           mkdir -p flutter_app/assets/${{ matrix.platform }}
-          cp binaries/c/hello-c flutter_app/assets/${{ matrix.platform }}/
-          cp binaries/cpp/hello-cpp flutter_app/assets/${{ matrix.platform }}/
-          cp binaries/rust/hello-rust flutter_app/assets/${{ matrix.platform }}/
-          cp binaries/go/hello-go flutter_app/assets/${{ matrix.platform }}/
+          
+          echo "Verifying source files:"
+          ls -l binaries/c/hello-c
+          ls -l binaries/cpp/hello-cpp
+          ls -l binaries/rust/hello-rust
+          ls -l binaries/go/hello-go
+          
+          echo "Copying files..."
+          cp -v binaries/c/hello-c flutter_app/assets/${{ matrix.platform }}/
+          cp -v binaries/cpp/hello-cpp flutter_app/assets/${{ matrix.platform }}/
+          cp -v binaries/rust/hello-rust flutter_app/assets/${{ matrix.platform }}/
+          cp -v binaries/go/hello-go flutter_app/assets/${{ matrix.platform }}/
+          
+          echo "Copied assets:"
+          ls -l flutter_app/assets/${{ matrix.platform }}/
 
       - name: Configure Linux Desktop
         if: matrix.platform == 'linux'
         run: |
           cd flutter_app
           flutter create --platforms=linux .
+          echo "Linux configuration:"
+          tree linux -L 3
 
       - name: Build Flutter App
         run: |
           cd flutter_app
           flutter pub get
           if [ "${{ matrix.platform }}" = "android" ]; then
-            flutter build apk --release
+            flutter build apk --release --verbose
           else
-            flutter build linux --release
+            flutter build linux --release --verbose \
+              --target=lib/main.dart \
+              --target-platform=linux-x64
           fi
 
       - name: Package Artifacts
@@ -132,6 +184,8 @@ jobs:
             cd flutter_app/build/linux/x64/release/bundle
             zip -r ../../../../../artifacts/linux-app.zip .
           fi
+          echo "Artifacts directory:"
+          tree artifacts
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
