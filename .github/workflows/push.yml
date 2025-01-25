@@ -53,7 +53,7 @@ jobs:
 
       - name: Setup Android NDK
         if: matrix.platform == 'android'
-        uses: nttld/setup-ndk@v2
+        uses: nttld/setup-ndk@v1
         with:
           ndk-version: ${{ env.NDK_VERSION }}
           link-to-sdk: true
