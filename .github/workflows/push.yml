@@ -1,0 +1,85 @@
+name: Build and Package Deliverables
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  NDK_VERSION: "25.1.8937393"
+  FLUTTER_VERSION: "3.13.0"
+
+jobs:
+  build:
+    name: Build Project
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - platform: android
+            build-command: build apk
+          - platform: linux
+            build-command: build linux
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'zulu'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+
+      - name: Install Rust
+        uses: actions-rust-lang/setup-rust@v1
+        with:
+          target: aarch64-linux-android
+
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+
+      - name: Setup Android NDK
+        if: matrix.platform == 'android'
+        uses: android-actions/setup-ndk@v1
+        with:
+          ndk-version: ${{ env.NDK_VERSION }}
+
+      - name: Build Binaries
+        run: |
+          cd binaries
+          ./build_linux.sh
+          if [ "${{ matrix.platform }}" = "android" ]; then
+            ./build_android.sh
+          fi
+
+      - name: Build Flutter App
+        run: |
+          cd flutter_app
+          flutter pub get
+          flutter ${{ matrix.build-command }} --release
+
+      - name: Package Deliverables
+        run: |
+          mkdir -p artifacts
+          if [ "${{ matrix.platform }}" = "android" ]; then
+            cp flutter_app/build/app/outputs/apk/release/app-release.apk artifacts/hello_world.apk
+          else
+            cd flutter_app/build/linux/x64/release/bundle && zip -r ../../../../../../artifacts/linux-app.zip .
+          fi
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.platform }}-deliverables
+          path: artifacts/*
+          if-no-files-found: error
