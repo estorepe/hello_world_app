@@ -71,7 +71,7 @@ class _BinaryRunnerScreenState extends State<BinaryRunnerScreen> {
       if (!await file.exists()) {
         final data = await rootBundle.load('assets/$platform/$name');
         await file.writeAsBytes(data.buffer.asUint8List());
-        await file.setExecutable(true);
+        await Process.run('chmod', ['+x', file.path]);
       }
       
       setState(() => _progress = (i + 1) / assets.length);
