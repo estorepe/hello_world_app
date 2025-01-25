@@ -9,8 +9,9 @@ pluginManagement {
     resolutionStrategy {
         eachPlugin {
             if (requested.id.toString() == "dev.flutter.flutter-gradle-plugin") {
-                useVersion "3.22.0"
-                useModule("dev.flutter:flutter-gradle-plugin:${requested.version}")
+                // Explicit version specification
+                useVersion("3.22.0")
+                useModule("dev.flutter:flutter-gradle-plugin:3.22.0")
             }
         }
     }
