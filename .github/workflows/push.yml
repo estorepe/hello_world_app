@@ -63,12 +63,17 @@ jobs:
         with:
           ndk-version: ${{ env.NDK_VERSION }}
           link-to-sdk: true
+      - name: Install Gradle
+        if: matrix.platform == 'android'
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: ${{ env.GRADLE_VERSION }}
 
       - name: Configure Android Gradle
         if: matrix.platform == 'android'
         run: |
           cd flutter_app/android
-          ./gradlew wrapper --gradle-version=${{ env.GRADLE_VERSION }} --distribution-type=bin
+          gradle wrapper --gradle-version=${{ env.GRADLE_VERSION }} --distribution-type=bin
           chmod +x gradlew
 
       - name: Configure Rust for Android
