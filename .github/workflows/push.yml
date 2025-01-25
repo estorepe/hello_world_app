@@ -12,6 +12,7 @@ env:
   RUST_VERSION: "stable"
   GRADLE_VERSION: "7.6"
   ANDROID_GRADLE_PLUGIN: "7.3.0"
+  FLUTTER_ROOT: ${{ github.workspace }}/flutter
 
 jobs:
   build:
@@ -75,6 +76,12 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           gradle-version: ${{ env.GRADLE_VERSION }}
+
+      - name: Verify Flutter Installation
+        run: |
+          echo "FLUTTER_ROOT: $FLUTTER_ROOT"
+          ls -la $FLUTTER_ROOT/packages/flutter_tools/gradle
+          cat $FLUTTER_ROOT/packages/flutter_tools/gradle/flutter.gradle
 
       - name: Configure Android Gradle
         if: matrix.platform == 'android'
